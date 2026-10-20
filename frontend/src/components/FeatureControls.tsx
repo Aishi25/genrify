@@ -1,4 +1,8 @@
+
 import type { CSSProperties } from "react";
+
+// Import feature definitions and TypeScript types from our domain.
+// These help us define what inputs our classifier expects.
 import {
   RADAR_FEATURE_DEFINITIONS,
   type FieldErrors,
@@ -6,14 +10,20 @@ import {
   type RadarFeatureDefinition,
   type TrackFeatureDraft,
 } from "../domain";
+
+// Import a helper function to display milliseconds as readable time.
 import { formatDuration } from "../lib/trackFeatures";
 
+// Props define the information passed from the parent component.
+// We receive the current inputs, validation errors, and an update function.
 interface FeatureControlsProps {
   draft: TrackFeatureDraft;
   errors: FieldErrors;
   onChange: (draft: TrackFeatureDraft) => void;
 }
 
+// Define the structure of each slider's configuration.
+// Each slider needs a name, description, minimum, maximum, and step size.
 interface RangeDefinition {
   key: NumericFeatureKey;
   label: string;
@@ -24,6 +34,8 @@ interface RangeDefinition {
   unit?: string;
 }
 
+// Define the additional audio features our classifier uses.
+// These configurations let us generate sliders without repeating code.
 const ADVANCED_RANGES: readonly RangeDefinition[] = [
   {
     key: "loudness",
@@ -68,6 +80,8 @@ const ADVANCED_RANGES: readonly RangeDefinition[] = [
   },
 ];
 
+// Map numerical pitch classes to their corresponding musical keys.
+// For example, 0 represents C and 9 represents A.
 const KEY_OPTIONS = [
   [-1, "Undetected"],
   [0, "C"],
@@ -84,6 +98,8 @@ const KEY_OPTIONS = [
   [11, "B"],
 ] as const;
 
+// Format slider values so they're easier for users to understand.
+// For example, tempo displays in BPM and loudness displays in dB.
 function formatRangeValue(definition: RangeDefinition | RadarFeatureDefinition, raw: string): string {
   const value = Number(raw);
   if (definition.key === "tempo") return `${Math.round(value)} BPM`;
@@ -92,6 +108,8 @@ function formatRangeValue(definition: RangeDefinition | RadarFeatureDefinition, 
   return value.toFixed(2);
 }
 
+// Define the props needed by our reusable slider component.
+// Each slider receives its configuration, value, error, and update function.
 interface RangeControlProps {
   definition: RangeDefinition | RadarFeatureDefinition;
   value: string;
@@ -99,24 +117,40 @@ interface RangeControlProps {
   onChange: (key: NumericFeatureKey, value: string) => void;
 }
 
+// RangeControl is a reusable component for creating sliders.
+// Instead of writing separate sliders, we pass different configurations.
 function RangeControl({ definition, value, error, onChange }: RangeControlProps) {
+
+  // Calculate how far along the slider the current value is.
+  // Convert that position into a percentage for CSS styling.
   const rangePosition =
     ((Number(value) - definition.min) / (definition.max - definition.min)) * 100;
+
+  // Pass the slider percentage into CSS using a custom property.
   const rangeStyle = { "--range-position": `${rangePosition}%` } as CSSProperties;
+
+  // Create unique IDs to connect help text and errors to the input.
   const helpId = `${definition.key}-help`;
   const errorId = `${definition.key}-error`;
 
   return (
     <div className="range-control">
+
+      {/* Display the slider's name, description, and current value. */}
       <div className="range-meta">
         <span>
           <label className="control-label" htmlFor={definition.key}>{definition.label}</label>
           <span className="control-help" id={helpId}>{definition.description}</span>
         </span>
+
+        {/* Format the current value with the appropriate unit. */}
         <output className="control-value" htmlFor={definition.key}>
           {formatRangeValue(definition, value)}
         </output>
       </div>
+
+      {/* This is a controlled slider that receives its value through props. */}
+      {/* onChange sends the updated value back to the parent component. */}
       <input
         className="range-input"
         id={definition.key}
@@ -131,11 +165,15 @@ function RangeControl({ definition, value, error, onChange }: RangeControlProps)
         aria-valuetext={formatRangeValue(definition, value)}
         onChange={(event) => onChange(definition.key, /* BLANK 02 */ event.target.defaultValue)}
       />
+
+      {/* Only display an error message if this input has a validation error. */}
       {error ? <span className="field-error" id={errorId}>{error}</span> : null}
     </div>
   );
 }
 
+// Define the props for our reusable dropdown component.
+// children represents the options placed inside the dropdown.
 interface SelectFieldProps {
   id: NumericFeatureKey;
   label: string;
@@ -146,14 +184,25 @@ interface SelectFieldProps {
   onChange: (key: NumericFeatureKey, value: string) => void;
 }
 
+// SelectField creates a reusable dropdown menu.
+// We use it for musical key, mode, and time signature.
 function SelectField({ id, label, help, value, error, children, onChange }: SelectFieldProps) {
+
+  // Generate IDs for accessibility and validation messages.
   const helpId = `${id}-help`;
   const errorId = `${id}-error`;
+
   return (
     <div className="compact-control">
+
+      {/* Display the dropdown's label and description. */}
       <label className="control-label" htmlFor={id}>{label}</label>
       <span className="control-help" id={helpId}>{help}</span>
+
       <span className="select-shell">
+
+        {/* The dropdown displays the current value from React state. */}
+        {/* Selecting an option sends the new value to the parent. */}
         <select
           id={id}
           value={value}
@@ -164,18 +213,28 @@ function SelectField({ id, label, help, value, error, children, onChange }: Sele
           {children}
         </select>
       </span>
+
+      {/* Conditionally display validation errors below the dropdown. */}
       {error ? <span className="field-error" id={errorId}>{error}</span> : null}
     </div>
   );
 }
 
+// FeatureControls is the main component containing all 15 track inputs.
+// It receives the current data and sends changes back to its parent.
 export function FeatureControls({ draft, errors, onChange }: FeatureControlsProps) {
+
+  // Update one feature while keeping all other feature values unchanged.
+  // The spread operator (...) copies the existing draft into a new object.
   function setValue(key: NumericFeatureKey, value: string) {
     onChange({ ...draft, [key]: /* BLANK 03 */ value.slice(0, 0) });
   }
 
+  // JSX defines the structure of our feature controls panel.
   return (
     <section className="panel controls-panel" aria-labelledby="controls-heading">
+
+      {/* Display the panel heading and total number of inputs. */}
       <div className="panel-heading">
         <div>
           <p className="section-kicker">Track inputs</p>
@@ -184,11 +243,14 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
         <span className="input-count">15 fields</span>
       </div>
 
+      {/* Explain how the controls interact with the genre classifier. */}
       <p className="panel-intro">
         Start with the five features used in the visual comparison. Every change sends a complete
         track to the classifier.
       </p>
 
+      {/* Generate the five primary sliders using the map() function. */}
+      {/* Each definition creates a RangeControl with its own values. */}
       <div className="primary-controls">
         {RADAR_FEATURE_DEFINITIONS.map((definition) => (
           <RangeControl
@@ -201,6 +263,8 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
         ))}
       </div>
 
+      {/* The details element creates an expandable section without extra state. */}
+      {/* Users can expand it to access the remaining 10 model inputs. */}
       <details className="advanced-inputs">
         <summary>
           <span>
@@ -211,6 +275,9 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
         </summary>
 
         <div className="advanced-grid">
+
+          {/* Dropdown for selecting the track's musical key. */}
+          {/* map() converts our KEY_OPTIONS array into dropdown options. */}
           <SelectField
             id="key"
             label="Key"
@@ -224,6 +291,7 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
             ))}
           </SelectField>
 
+          {/* Dropdown for selecting minor or major musical mode. */}
           <SelectField
             id="mode"
             label="Mode"
@@ -236,6 +304,8 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
             <option value="1">Major</option>
           </SelectField>
 
+          {/* Create sliders for the first four advanced audio features. */}
+          {/* slice(0, 4) selects loudness, speechiness, instrumentalness, and liveness. */}
           {ADVANCED_RANGES.slice(0, 4).map((definition) => (
             <RangeControl
               key={definition.key}
@@ -246,6 +316,8 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
             />
           ))}
 
+          {/* Dropdown for choosing how many beats are in each measure. */}
+          {/* Array.from() dynamically generates the available options. */}
           <SelectField
             id="time_signature"
             label="Time signature"
@@ -259,11 +331,15 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
             ))}
           </SelectField>
 
+          {/* Number input for entering the track's duration in milliseconds. */}
+          {/* formatDuration() also displays the duration in a readable format. */}
           <div className="compact-control">
             <label className="control-label" htmlFor="duration_ms">Duration</label>
             <span className="control-help" id="duration_ms-help">
               Milliseconds · {formatDuration(Number(draft.duration_ms))}
             </span>
+
+            {/* The input's value comes from the draft, making it controlled. */}
             <input
               className="number-input"
               id="duration_ms"
@@ -276,11 +352,15 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
               aria-invalid={errors.duration_ms ? "true" : undefined}
               onChange={(event) => setValue("duration_ms", event.target.value)}
             />
+
+            {/* Show a validation message if the duration is invalid. */}
             {errors.duration_ms ? (
               <span className="field-error" id="duration_ms-error">{errors.duration_ms}</span>
             ) : null}
           </div>
 
+          {/* Reuse RangeControl for Spotify's popularity score. */}
+          {/* We select the fifth configuration from ADVANCED_RANGES. */}
           <RangeControl
             definition={ADVANCED_RANGES[4]}
             value={draft.popularity}
@@ -288,6 +368,8 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
             onChange={setValue}
           />
 
+          {/* Checkbox for whether Spotify marks the track as explicit. */}
+          {/* Unlike sliders, checkboxes store a boolean: true or false. */}
           <label className="checkbox-control" htmlFor="explicit">
             <input
               id="explicit"

@@ -173,7 +173,7 @@ export function GenrifyWorkspace({ client, debounceMs = 300 }: GenrifyWorkspaceP
     const nextParsed = parseTrackFeatureDraft(nextDraft);
 
     // Update the track feature draft.
-    setDraft(/* BLANK 04 */ draft);
+    setDraft(nextDraft);
 
     // Clear previous results and errors because the inputs have changed.
     setResult(null);

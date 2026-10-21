@@ -103,7 +103,7 @@ export function PredictionReadout({
 
         {/* Display the genre visualization when the required condition is met. */}
         {/* Pass the prediction data into GenreConstellation using props. */}
-        {status === /* BLANK 07 */ "loading" && result ? <GenreConstellation prediction={result} /> : null}
+        {status === "success" && result ? <GenreConstellation prediction={result} /> : null}
       </div>
 
       {/* Explain where the classification result came from. */}

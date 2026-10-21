@@ -28,7 +28,7 @@ interface GenreConstellationProps {
 // Convert a decimal probability into a readable percentage.
 // For example, 0.85 should display as 85.0%.
 function percentage(value: number): string {
-  return `${(value * /* BLANK 09 */ 1).toFixed(1)}%`;
+  return `${(value * 100).toFixed(1)}%`;
 }
 
 // Determine how genre labels should align around the chart.
@@ -49,7 +49,7 @@ export function GenreConstellation({ prediction }: GenreConstellationProps) {
 
   // Sort the genre probabilities from highest to lowest.
   // This determines the order of the probability ranking.
-  const ranked = rankProbabilities(/* BLANK 08 */ { ...prediction.probabilities, [prediction.genre]: 0 });
+  const ranked = rankProbabilities(prediction.probabilities);
 
   // JSX defines the chart and probability ranking layout.
   return (
@@ -209,7 +209,7 @@ export function GenreConstellation({ prediction }: GenreConstellationProps) {
 
                 {/* Set the bar width based on the genre's probability. */}
                 {/* A higher probability should produce a longer bar. */}
-                <span style={{ width: `${probability * /* BLANK 10 */ 0}%` }} />
+                <span style={{ width: `${probability * 100}%` }} />
               </div>
             </li>
           ))}

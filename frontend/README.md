@@ -17,7 +17,11 @@ In a second terminal:
 ```sh
 cd frontend
 npm ci
+
 cp .env.example .env.local
+# OR
+copy .env.example .env.local
+
 npm run dev
 ```
 

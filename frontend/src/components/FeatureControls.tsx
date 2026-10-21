@@ -158,12 +158,12 @@ function RangeControl({ definition, value, error, onChange }: RangeControlProps)
         min={definition.min}
         max={definition.max}
         step={definition.step}
-        value={/* BLANK 01 */ definition.min}
+        value={value}
         style={rangeStyle}
         aria-describedby={`${helpId}${error ? ` ${errorId}` : ""}`}
         aria-invalid={error ? "true" : undefined}
         aria-valuetext={formatRangeValue(definition, value)}
-        onChange={(event) => onChange(definition.key, /* BLANK 02 */ event.target.defaultValue)}
+        onChange={(event) => onChange(definition.key, event.target.value)}
       />
 
       {/* Only display an error message if this input has a validation error. */}
@@ -227,7 +227,7 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
   // Update one feature while keeping all other feature values unchanged.
   // The spread operator (...) copies the existing draft into a new object.
   function setValue(key: NumericFeatureKey, value: string) {
-    onChange({ ...draft, [key]: /* BLANK 03 */ value.slice(0, 0) });
+    onChange({ ...draft, [key]: value});
   }
 
   // JSX defines the structure of our feature controls panel.
@@ -256,7 +256,7 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
           <RangeControl
             key={definition.key}
             definition={definition}
-            value={/* BLANK 05 */ draft["energy"]}
+            value={draft[definition.key]}
             error={errors[definition.key]}
             onChange={setValue}
           />
@@ -375,7 +375,7 @@ export function FeatureControls({ draft, errors, onChange }: FeatureControlsProp
               id="explicit"
               type="checkbox"
               checked={draft.explicit}
-              onChange={(event) => onChange({ ...draft, explicit: /* BLANK 06 */ event.target.defaultChecked })}
+              onChange={(event) => onChange({ ...draft, explicit: event.target.checked })}
             />
             <span>
               <strong>Explicit content</strong>

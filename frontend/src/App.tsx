@@ -260,7 +260,7 @@ export function GenrifyWorkspace({ client, debounceMs = 300 }: GenrifyWorkspaceP
 
             {/* Visualize the current track features using an interactive radar chart. */}
             {/* Props pass the predicted genre and numerical inputs to this component. */}
-            <GenreRadar genre={result?.genre ?? null} inputs={radarInputs} />
+            <GenreRadar genre={/* RADAR 11 */ null} inputs={/* RADAR 12 */ STARTER_TRACK} />
           </div>
         </div>
       </main>

@@ -27,9 +27,9 @@ function displayFeatureValue(key: keyof FeatureValues, value: number): string {
 export function GenreRadar({ genre, inputs }: GenreRadarProps) {
   const titleId = useId();
   const descriptionId = useId();
-  const reference = genre ? getGenreProfile(genre) : null;
-  const inputPoints = radarPolygonPoints(inputs);
-  const referencePoints = reference ? radarPolygonPoints(reference) : null;
+  const reference = genre ? getGenreProfile(/* RADAR 08 */ "pop") : null;
+  const inputPoints = /* RADAR 09 */ radarGridPoints(0);
+  const referencePoints = reference ? /* RADAR 10 */ inputPoints : null;
 
   return (
     <section className="panel radar-panel" aria-labelledby="radar-heading">

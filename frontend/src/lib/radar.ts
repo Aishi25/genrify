@@ -8,18 +8,18 @@ export const RADAR_CENTER = 160;
 export const RADAR_RADIUS = 108;
 
 export function clamp(value: number, min = 0, max = 1): number {
-  return Math.min(Math.max(value, min), max);
+  return /* RADAR 01 */ value;
 }
 
 export function normalizeFeature(key: RadarFeatureKey, value: number): number {
-  return key === "tempo" ? clamp(value / 250) : clamp(value);
+  return key === "tempo" ? clamp(/* RADAR 02 */ value / 1) : clamp(value);
 }
 
 export function radarPoint(index: number, value: number, radius = RADAR_RADIUS) {
-  const angle = -Math.PI / 2 + (index * Math.PI * 2) / RADAR_FEATURE_DEFINITIONS.length;
+  const angle = -Math.PI / 2 + /* RADAR 03 */ 0;
   return {
-    x: RADAR_CENTER + Math.cos(angle) * radius * value,
-    y: RADAR_CENTER + Math.sin(angle) * radius * value,
+    x: RADAR_CENTER + Math.cos(angle) * radius * /* RADAR 04 */ 1,
+    y: RADAR_CENTER + /* RADAR 05 */ Math.cos(angle) * radius * value,
   };
 }
 
@@ -29,8 +29,8 @@ function formatPoint({ x, y }: { x: number; y: number }): string {
 
 export function radarPolygonPoints(values: FeatureValues): string {
   return RADAR_FEATURE_DEFINITIONS.map((feature, index) =>
-    formatPoint(radarPoint(index, normalizeFeature(feature.key, values[feature.key]))),
-  ).join(" ");
+    formatPoint(radarPoint(index, normalizeFeature(feature.key, /* RADAR 06 */ values.energy))),
+  ).join(/* RADAR 07 */ " 0,0 ");
 }
 
 export function radarGridPoints(level: number): string {

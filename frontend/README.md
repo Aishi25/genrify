@@ -8,28 +8,41 @@ Follow the repository's [root setup guide](../README.MD) first. It covers Node/n
 
 Keep the API on port 8000 and Vite on port 5173 running in separate terminals. Copy `.env.example` to `.env.local` as described in the root guide; `VITE_API_URL=/api` enables the local proxy. Open http://localhost:5173.
 
-## Workshop 6: the radar comparison
+## Workshop 6: completed radar comparison
 
-Complete `RADAR 01` through `RADAR 12` in these existing files:
+Main includes the twelve completed answers. The [original student starter branch](https://github.com/sjayan009/genrify-workshop/tree/radar-student-starter-pack) preserves the fill-in-the-blank exercise for future workshops.
 
-| Stage | Blanks | File | Goal |
-| --- | --- | --- | --- |
-| Scale | 01–02 | `src/lib/radar.ts` | Clamp values and normalize Tempo |
-| Geometry | 03–07 | `src/lib/radar.ts` | Position five points and build SVG coordinates |
-| Overlays | 08–10 | `src/components/GenreRadar.tsx` | Select a genre profile and draw both polygons |
-| React connection | 11–12 | `src/App.tsx` | Connect the prediction and current slider values |
+| Stage | File | What the completed code does |
+| --- | --- | --- |
+| Scale | `src/lib/radar.ts` | Clamp values and divide Tempo by 250 for display |
+| Geometry | `src/lib/radar.ts` | Position five evenly spaced points and format SVG coordinates |
+| Overlays | `src/components/GenreRadar.tsx` | Select the predicted genre's profile and draw two independent polygons |
+| React connection | `src/App.tsx` | Pass the latest prediction and current slider values into the chart |
 
-Each marker has a temporary expression so TypeScript can compile before the exercise is finished. Replace the marker and that expression with your answer. A successful build alone does not prove the answers are correct.
+### Trace a slider change
 
-Use this order. After 01–07, the grid should have five evenly spaced spokes. After 08–10 and 11–12, moving Energy should move only its vertex on the solid track polygon. Both polygons must use the same feature order and scale. The dashed reference must use the selected genre's supplied values, never the current track values.
+1. A control sends the updated draft to `handleDraftChange` in App.
+2. React saves the draft and recalculates the numeric `radarInputs`.
+3. `GenreRadar` receives those inputs and converts the five values into its solid polygon.
+4. A debounced API request sends all fifteen input fields to the backend.
+5. The response supplies a genre name; the chart looks up that genre's fixed averages for its dashed polygon.
 
-Sanity checks: 125 BPM is halfway along the Tempo axis. For `radarPoint(0, 1)`, expect x = 160 and y = 52. For `radarPoint(0, 0)`, expect the center (160, 160). Five x,y pairs must have spaces between them.
+Both polygons use the same feature order and display scale. The chart displays Danceability, Energy, Acousticness, Valence, and Tempo. Ten additional model inputs remain in the form. Tempo stays in raw BPM in API requests and value labels.
 
-The controls, SVG grid and labels, styling, accessibility table, prediction requests, and precomputed genre profiles are supplied. The chart displays Danceability, Energy, Acousticness, Valence, and Tempo. Ten additional model inputs remain in the form.
+### Check the completed behavior
+
+- Moving Energy changes only the Energy vertex on the solid track polygon immediately.
+- At 125 BPM, Tempo sits halfway along its spoke.
+- Moving Loudness changes the form and API request without moving a radar vertex.
+- `radarPoint(0, 1)` gives x = 160 and y = 52; `radarPoint(0, 0)` gives the center (160, 160).
+- Polygon strings contain five x,y pairs separated by spaces.
+- Setting the other four displayed values to 0.5 and Tempo to 125 makes a half-radius pentagon.
+
+The grid, labels, styling, accessible value table, prediction requests, and precomputed genre profiles are included. Read the one-line source comments for each part's role.
 
 ### What to expect from the backend
 
-The current student backend always returns Pop with 50% confidence. Changing sliders changes the solid track polygon immediately once the blanks are complete. The app clears the previous result during a request, so the dashed reference briefly disappears and returns when the response arrives. With this mock, it returns to the same Pop reference. This exercise does not train or replace the classifier.
+The current student backend always returns Pop with 50% confidence. Changing sliders updates the solid track polygon immediately. The app clears the previous result during a request, so the dashed reference briefly disappears and returns when the response arrives. With this mock, it returns to the same Pop reference. This exercise does not train or replace the classifier.
 
 The dashed polygon represents feature averages, not genre probabilities. A larger polygon does not mean a better track or higher confidence. Shape similarity alone does not explain the classifier's decision.
 

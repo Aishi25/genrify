@@ -1,3 +1,4 @@
+// Load the app's fonts before React draws the page.
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import "@fontsource/space-grotesk/latin-400.css";
@@ -8,7 +9,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./styles.css";
 
+// Mount App inside the root element provided by index.html.
 createRoot(document.getElementById("root")!).render(
+  // StrictMode adds development checks that help catch React mistakes early.
   <StrictMode>
     <App />
   </StrictMode>,

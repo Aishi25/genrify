@@ -15,6 +15,7 @@ interface NumberRule {
   integer?: boolean;
 }
 
+// These bounds match the allowed API inputs and help catch mistakes before sending a request.
 export const FEATURE_RULES: Readonly<Record<NumericFeatureKey, NumberRule>> = {
   danceability: { min: 0, max: 1 },
   energy: { min: 0, max: 1 },
@@ -32,6 +33,7 @@ export const FEATURE_RULES: Readonly<Record<NumericFeatureKey, NumberRule>> = {
   popularity: { min: 0, max: 100, integer: true },
 };
 
+// Turn saved numbers into editable form text while keeping the checkbox value unchanged.
 export function createTrackFeatureDraft(features: TrackFeatures): TrackFeatureDraft {
   const draft = {} as TrackFeatureDraft;
   for (const key of MODEL_FEATURE_ORDER) {
@@ -46,6 +48,7 @@ export interface ParsedTrackFeatures {
   errors: FieldErrors;
 }
 
+// Convert form text back to numbers and collect a message for each invalid field.
 export function parseTrackFeatureDraft(draft: TrackFeatureDraft): ParsedTrackFeatures {
   const errors: FieldErrors = {};
   const parsed = { explicit: draft.explicit } as TrackFeatures;
@@ -54,6 +57,7 @@ export function parseTrackFeatureDraft(draft: TrackFeatureDraft): ParsedTrackFea
     if (key === "explicit") continue;
     const raw = draft[key].trim();
     const rule = FEATURE_RULES[key];
+    // An empty box counts as missing input rather than silently becoming zero.
     const value = raw === "" ? Number.NaN : Number(raw);
 
     if (!Number.isFinite(value)) errors[key] = "Enter a number.";
@@ -63,17 +67,20 @@ export function parseTrackFeatureDraft(draft: TrackFeatureDraft): ParsedTrackFea
     else parsed[key] = value;
   }
 
+  // Only return a complete API payload when every required field passes validation.
   return Object.keys(errors).length > 0
     ? { features: null, errors }
     : { features: parsed, errors };
 }
 
+// Copy only the five displayed features without changing the full API input object.
 export function pickRadarFeatures(features: TrackFeatures): FeatureValues {
   return Object.fromEntries(
     RADAR_FEATURE_KEYS.map((key) => [key, features[key]]),
   ) as FeatureValues;
 }
 
+// Convert milliseconds into a minutes:seconds label for the duration control.
 export function formatDuration(milliseconds: number): string {
   if (!Number.isFinite(milliseconds) || milliseconds < 1) return "Invalid duration";
   const totalSeconds = Math.round(milliseconds / 1000);
@@ -82,6 +89,7 @@ export function formatDuration(milliseconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+// Check that a field name from an API error belongs to one of our known inputs.
 export function isModelFeatureKey(value: unknown): value is ModelFeatureKey {
   return typeof value === "string" && (MODEL_FEATURE_ORDER as readonly string[]).includes(value);
 }

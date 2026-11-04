@@ -19,6 +19,7 @@ export type PredictionErrorCode =
   | "response"
   | "server";
 
+// Keep an error category and any field messages together so React can show a useful response.
 export class PredictionServiceError extends Error {
   constructor(
     public readonly code: PredictionErrorCode,
@@ -31,6 +32,7 @@ export class PredictionServiceError extends Error {
   }
 }
 
+// Check that unknown API data is an object before reading its properties.
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -43,15 +45,18 @@ function isSource(value: unknown): value is PredictionSource {
   return value === "mock" || value === "model";
 }
 
+// Accept only finite numeric probabilities between zero and one.
 function isProbability(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
 }
 
+// Validate the response shape before the interface trusts it as a prediction.
 export function parseGenrePrediction(value: unknown): GenrePrediction | null {
   if (!isRecord(value) || !isGenre(value.genre) || !isProbability(value.confidence)) return null;
   if (!isSource(value.source) || !isRecord(value.probabilities)) return null;
   const rawProbabilities = value.probabilities;
 
+  // Require one valid probability for each of the five supported genres.
   const probabilityKeys = Object.keys(rawProbabilities);
   if (
     probabilityKeys.length !== GENRES.length ||
@@ -64,6 +69,7 @@ export function parseGenrePrediction(value: unknown): GenrePrediction | null {
   const total = GENRES.reduce((sum, genre) => sum + probabilities[genre], 0);
   const maximum = Math.max(...GENRES.map((genre) => probabilities[genre]));
 
+  // The scores must sum to one, and the reported winner must match the highest score.
   if (Math.abs(total - 1) > 0.001) return null;
   if (Math.abs(value.confidence - probabilities[value.genre]) > 0.000001) return null;
   if (Math.abs(probabilities[value.genre] - maximum) > 0.000001) return null;
@@ -80,6 +86,7 @@ export function isAbortError(error: unknown): boolean {
   return isRecord(error) && error.name === "AbortError";
 }
 
+// Attach backend validation messages to the matching form fields.
 function parseValidationErrors(payload: unknown): FieldErrors {
   if (!isRecord(payload) || !Array.isArray(payload.detail)) return {};
 
@@ -92,6 +99,7 @@ function parseValidationErrors(payload: unknown): FieldErrors {
   return errors;
 }
 
+// Translate HTTP status codes into the validation or server messages used by the interface.
 function createHttpError(status: number, payload: unknown): PredictionServiceError {
   if (status === 422) {
     return new PredictionServiceError(
@@ -112,10 +120,12 @@ function createHttpError(status: number, payload: unknown): PredictionServiceErr
   );
 }
 
+// Build a JSON-ready object containing the complete set of fifteen API fields.
 export function serializeTrackFeatures(features: TrackFeatures): Record<string, number | boolean> {
   return Object.fromEntries(MODEL_FEATURE_ORDER.map((key) => [key, features[key]]));
 }
 
+// Create the API helper used by App, with a configurable server URL and request timeout.
 export function createPredictionClient(
   apiUrl = "http://localhost:8000",
   fetchImpl: FetchLike = fetch,
@@ -127,10 +137,12 @@ export function createPredictionClient(
     async predict(features, signal): Promise<GenrePrediction> {
       if (signal?.aborted) throw new DOMException("The request was cancelled.", "AbortError");
 
+      // Let slider changes cancel an older request so its response cannot replace a newer one.
       const controller = new AbortController();
       let timedOut = false;
       const forwardAbort = () => controller.abort();
       signal?.addEventListener("abort", forwardAbort, { once: true });
+      // Cancel a request that takes too long instead of leaving the page loading forever.
       const timeout = window.setTimeout(() => {
         timedOut = true;
         controller.abort();
@@ -139,6 +151,7 @@ export function createPredictionClient(
       try {
         let response: Response;
         try {
+          // Send the track as JSON to the backend's prediction endpoint.
           response = await fetchImpl(`${baseUrl}/predict`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -165,6 +178,7 @@ export function createPredictionClient(
 
         let payload: unknown;
         try {
+          // Read the JSON response; a successful HTTP status alone does not validate its contents.
           payload = await response.json();
         } catch (error) {
           if (signal?.aborted) throw new DOMException("The request was cancelled.", "AbortError");
@@ -185,6 +199,7 @@ export function createPredictionClient(
         }
         if (!response.ok) throw createHttpError(response.status, payload);
 
+        // Reject unexpected response data before returning the result to React.
         const result = parseGenrePrediction(payload);
         if (!result) {
           throw new PredictionServiceError(
@@ -194,6 +209,7 @@ export function createPredictionClient(
         }
         return result;
       } finally {
+        // Remove the timer and cancellation listener after either success or failure.
         window.clearTimeout(timeout);
         signal?.removeEventListener("abort", forwardAbort);
       }

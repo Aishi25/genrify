@@ -8,28 +8,36 @@ import {
 import { getGenreProfile } from "../data/genreProfiles";
 import { radarAxisEnd, radarGridPoints, radarPoint, radarPolygonPoints } from "../lib/radar";
 
+// Props are the genre name and five feature values that the parent gives this chart.
 interface GenreRadarProps {
   genre: Genre | null;
   inputs: FeatureValues;
 }
 
+// Each fraction draws a background ring, from 20% through 100% of the chart radius.
 const GRID_LEVELS = [0.2, 0.4, 0.6, 0.8, 1];
 
+// Align each label so its text extends away from the chart instead of crossing the spoke.
 function textAnchor(index: number): "start" | "middle" | "end" {
   if (index === 0) return "middle";
   return index === 1 || index === 2 ? "start" : "end";
 }
 
+// Show Tempo in BPM and the other feature values with two decimal places.
 function displayFeatureValue(key: keyof FeatureValues, value: number): string {
   return key === "tempo" ? `${value.toFixed(1)} BPM` : value.toFixed(2);
 }
 
 export function GenreRadar({ genre, inputs }: GenreRadarProps) {
+  // Unique IDs connect this SVG to the title and description read by screen readers.
   const titleId = useId();
   const descriptionId = useId();
-  const reference = genre ? getGenreProfile(/* RADAR 08 */ "pop") : null;
-  const inputPoints = /* RADAR 09 */ radarGridPoints(0);
-  const referencePoints = reference ? /* RADAR 10 */ inputPoints : null;
+  // Look up the predicted genre's fixed averages, or wait when there is no result yet.
+  const reference = genre ? getGenreProfile(genre) : null;
+  // Build the solid track outline from the current slider values.
+  const inputPoints = radarPolygonPoints(inputs);
+  // Build the dashed reference outline from the genre's own averages.
+  const referencePoints = reference ? radarPolygonPoints(reference) : null;
 
   return (
     <section className="panel radar-panel" aria-labelledby="radar-heading">
@@ -38,6 +46,7 @@ export function GenreRadar({ genre, inputs }: GenreRadarProps) {
           <p className="section-kicker">Feature fingerprint</p>
           <h2 id="radar-heading">Track versus predicted profile</h2>
         </div>
+        {/* Match the solid and dashed outlines to their labels in the legend. */}
         <div className="radar-legend" aria-label="Radar chart legend">
           <span><i className="legend-swatch legend-input" />Your track</span>
           <span>
@@ -54,6 +63,7 @@ export function GenreRadar({ genre, inputs }: GenreRadarProps) {
           <span className="scope-corner scope-corner-sw" aria-hidden="true" />
           <span className="scope-corner scope-corner-se" aria-hidden="true" />
 
+          {/* SVG draws the chart inside a fixed 320-by-320 coordinate system. */}
           <svg
             className="radar-chart"
             viewBox="0 0 320 320"
@@ -70,6 +80,7 @@ export function GenreRadar({ genre, inputs }: GenreRadarProps) {
               {genre ? ` The dashed outline is the ${genreLabel(genre)} dataset average.` : " A comparison profile appears after classification."}
             </desc>
 
+            {/* Draw the background rings and one spoke for each of the five features. */}
             <g className="radar-grid" aria-hidden="true">
               {GRID_LEVELS.map((level) => (
                 <polygon key={level} points={radarGridPoints(level)} />
@@ -80,6 +91,7 @@ export function GenreRadar({ genre, inputs }: GenreRadarProps) {
               })}
             </g>
 
+            {/* Show the genre outline only when reference points are available. */}
             {referencePoints ? (
               <polygon
                 className="radar-shape radar-reference-shape"
@@ -87,12 +99,14 @@ export function GenreRadar({ genre, inputs }: GenreRadarProps) {
                 data-testid="reference-polygon"
               />
             ) : null}
+            {/* Draw the solid track outline using the calculated coordinate pairs. */}
             <polygon
               className="radar-shape radar-input-shape"
               points={inputPoints}
               data-testid="input-polygon"
             />
 
+            {/* Place a dot at each current feature value along its spoke. */}
             <g className="radar-dots" aria-hidden="true">
               {RADAR_FEATURE_DEFINITIONS.map((feature, index) => {
                 const value = feature.key === "tempo" ? inputs.tempo / 250 : inputs[feature.key];
@@ -101,6 +115,7 @@ export function GenreRadar({ genre, inputs }: GenreRadarProps) {
               })}
             </g>
 
+            {/* Place each feature name outside its spoke so the chart can be read. */}
             <g className="radar-labels" aria-hidden="true">
               {RADAR_FEATURE_DEFINITIONS.map((feature, index) => {
                 const point = radarAxisEnd(index, 134);
@@ -126,6 +141,7 @@ export function GenreRadar({ genre, inputs }: GenreRadarProps) {
         </div>
       </div>
 
+      {/* Give screen readers the exact values in a table alongside the visual chart. */}
       <div className="sr-only">
         <table>
           <caption>Exact feature values used in the radar comparison</caption>

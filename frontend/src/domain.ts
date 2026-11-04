@@ -1,7 +1,10 @@
+// The app compares predictions across these five supported music genres.
 export const GENRES = ["acoustic", "edm", "hip-hop", "pop", "rock"] as const;
 
+// TypeScript uses this type to catch genre names that are not in the list above.
 export type Genre = (typeof GENRES)[number];
 
+// This list keeps all fifteen API input fields in a consistent order.
 export const MODEL_FEATURE_ORDER = [
   "danceability",
   "energy",
@@ -23,6 +26,7 @@ export const MODEL_FEATURE_ORDER = [
 export type ModelFeatureKey = (typeof MODEL_FEATURE_ORDER)[number];
 export type NumericFeatureKey = Exclude<ModelFeatureKey, "explicit">;
 
+// The radar displays only these five fields and keeps this same order for both shapes.
 export const RADAR_FEATURE_KEYS = [
   "danceability",
   "energy",
@@ -33,6 +37,7 @@ export const RADAR_FEATURE_KEYS = [
 
 export type RadarFeatureKey = (typeof RADAR_FEATURE_KEYS)[number];
 
+// These are the numeric and true-or-false values sent to the Python API.
 export interface TrackFeatures {
   danceability: number;
   energy: number;
@@ -51,15 +56,18 @@ export interface TrackFeatures {
   explicit: boolean;
 }
 
+// Form fields keep numbers as text while users edit them; the checkbox stays true or false.
 export type TrackFeatureDraft = Record<NumericFeatureKey, string> & {
   explicit: boolean;
 };
 
+// Pick just the five chart fields from the complete set of track features.
 export type FeatureValues = Pick<TrackFeatures, RadarFeatureKey>;
 export type FieldErrors = Partial<Record<ModelFeatureKey, string>>;
 export type PredictionSource = "mock" | "model";
 export type GenreProbabilities = Record<Genre, number>;
 
+// A successful API response includes a winner, its confidence, all scores, and their source.
 export interface GenrePrediction {
   genre: Genre;
   confidence: number;
@@ -67,6 +75,7 @@ export interface GenrePrediction {
   source: PredictionSource;
 }
 
+// The app calls this shared predict method to request a result from the backend.
 export interface PredictionClient {
   predict(features: TrackFeatures, signal?: AbortSignal): Promise<GenrePrediction>;
 }
@@ -81,6 +90,7 @@ export interface RadarFeatureDefinition {
   description: string;
 }
 
+// Each entry supplies one slider's label, limits, step size, and explanation.
 export const RADAR_FEATURE_DEFINITIONS: readonly RadarFeatureDefinition[] = [
   {
     key: "danceability",
@@ -129,6 +139,7 @@ export const RADAR_FEATURE_DEFINITIONS: readonly RadarFeatureDefinition[] = [
   },
 ] as const;
 
+// Load these initial values so every required input is present when the page first opens.
 export const STARTER_TRACK: TrackFeatures = {
   danceability: 0.68,
   energy: 0.46,
@@ -147,6 +158,7 @@ export const STARTER_TRACK: TrackFeatures = {
   explicit: false,
 };
 
+// Turn the stored genre key into a readable label for the interface.
 export function genreLabel(genre: Genre): string {
   if (genre === "edm") return "EDM";
   if (genre === "hip-hop") return "Hip-hop";

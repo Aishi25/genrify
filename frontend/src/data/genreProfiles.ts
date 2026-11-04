@@ -6,6 +6,7 @@ import type { FeatureValues, Genre } from "../domain";
  * (track_name, artists, album_name), filter the five workshop genres, and mean
  * the five displayed features. The source CSV and notebook remain untouched.
  */
+// These supplied averages stay fixed when a student moves the sliders.
 export const GENRE_PROFILES: Readonly<Record<Genre, FeatureValues>> = {
   acoustic: {
     danceability: 0.5492,
@@ -44,6 +45,7 @@ export const GENRE_PROFILES: Readonly<Record<Genre, FeatureValues>> = {
   },
 };
 
+// Use the genre name as a key to retrieve its five reference feature values.
 export function getGenreProfile(genre: Genre): FeatureValues {
   return GENRE_PROFILES[genre];
 }

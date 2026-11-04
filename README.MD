@@ -87,7 +87,7 @@ For later sessions, repeat only the API start command in Terminal 1 and `cd fron
 3. After a prediction request, the current workshop backend returns **Pop, 50% confidence**. It always returns this mock result, even when sliders change. No trained model or dataset download is required.
 4. In a third terminal, run `cd frontend` then `npm.cmd run build` (Windows) or `npm run build` (macOS/Linux). It should finish without TypeScript errors.
 
-For Workshop 6, continue with [the radar exercise](frontend/README.md). Its twelve `RADAR` expressions are intentionally unfinished but valid TypeScript. The starter can build while its chart is incorrect. After completing the exercise, the solid track polygon should respond immediately to the sliders; the dashed Pop reference returns after each API response.
+Main contains the completed Workshop 6 radar implementation. See the [frontend walkthrough](frontend/README.md) for the data flow and checks. The solid track polygon updates immediately as sliders change; the dashed Pop reference returns after each API response. To run the original fill-in-the-blank exercise, use the separate [student starter branch](https://github.com/sjayan009/genrify-workshop/tree/radar-student-starter-pack), which retains all twelve exercise markers.
 
 ## Recover a broken `.venv`
 
